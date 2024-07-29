@@ -48,6 +48,22 @@ You can adjust the following parameters in `cmd/monitor/main.go`:
 - `symbol`: The cryptocurrency pair to monitor (e.g., "btcusdt", "ethusdt")
 - Buffer size and flush interval in the `NewBufferedCSVWriter` function call
 
+## TODO: 
+
+- Add configuration file support
+- Add support for multiple pairs
+- Insert data into a database
+- Add support for more Binance WebSocket API endpoints
+- Add support for more data processing and analysis
+- Add support for Kafka
+- Add support for Vue JS front end
+- Add support for Docker
+- Add support for Kubernetes or doc
+- Add support for CI/CD
+- Add support for more tests
+- Add support for more documentation
+
+
 ## License
 
 [MIT License](LICENSE)
