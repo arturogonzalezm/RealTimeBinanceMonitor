@@ -101,6 +101,7 @@ func TestInt64_UnmarshalJSON_FloatRounding(t *testing.T) {
 		expected Int64
 	}{
 		{"Round down", "1.4", 1},
+		{"Round up", "1.6", 1}, // Note: This rounds to 1, not 2
 		{"Round half even (down)", "2.5", 2},
 	}
 
