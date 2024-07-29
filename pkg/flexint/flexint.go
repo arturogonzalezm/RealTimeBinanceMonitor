@@ -3,6 +3,7 @@ package flexint
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"math"
 	"strconv"
 )
@@ -25,6 +26,7 @@ func (i *Int64) UnmarshalJSON(data []byte) error {
 	// Try to unmarshal as a float64 and then convert
 	var floatVal float64
 	if err := json.Unmarshal(data, &floatVal); err == nil {
+		fmt.Printf("floatVal: %f\n", floatVal) // Debug print
 		if floatVal > float64(math.MaxInt64) {
 			*i = Int64(math.MaxInt64)
 		} else if floatVal < float64(math.MinInt64) {
