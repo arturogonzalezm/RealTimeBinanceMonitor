@@ -68,6 +68,11 @@ func TestInt64_UnmarshalJSON_LargeFloat(t *testing.T) {
 			err := json.Unmarshal([]byte(tt.input), &fi)
 			require.NoError(t, err)
 			assert.Equal(t, tt.expected, fi, "For input: %s", tt.input)
+
+			// Debugging information
+			if tt.expected != fi {
+				t.Logf("Input: %s, Expected: %d, Got: %d", tt.input, tt.expected, fi)
+			}
 		})
 	}
 }
@@ -90,6 +95,11 @@ func TestInt64_UnmarshalJSON_FloatPrecision(t *testing.T) {
 			err := json.Unmarshal([]byte(tt.input), &fi)
 			require.NoError(t, err)
 			assert.Equal(t, tt.expected, fi, "For input: %s", tt.input)
+
+			// Debugging information
+			if tt.expected != fi {
+				t.Logf("Input: %s, Expected: %d, Got: %d", tt.input, tt.expected, fi)
+			}
 		})
 	}
 }
@@ -111,6 +121,11 @@ func TestInt64_UnmarshalJSON_FloatRounding(t *testing.T) {
 			err := json.Unmarshal([]byte(tt.input), &fi)
 			require.NoError(t, err)
 			assert.Equal(t, tt.expected, fi, "For input: %s", tt.input)
+
+			// Debugging information
+			if tt.expected != fi {
+				t.Logf("Input: %s, Expected: %d, Got: %d", tt.input, tt.expected, fi)
+			}
 		})
 	}
 }
@@ -133,6 +148,11 @@ func TestInt64_UnmarshalJSON_ScientificNotation(t *testing.T) {
 			err := json.Unmarshal([]byte(tt.input), &fi)
 			require.NoError(t, err)
 			assert.Equal(t, tt.expected, fi)
+
+			// Debugging information
+			if tt.expected != fi {
+				t.Logf("Input: %s, Expected: %d, Got: %d", tt.input, tt.expected, fi)
+			}
 		})
 	}
 }
