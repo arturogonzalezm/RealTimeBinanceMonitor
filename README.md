@@ -1,4 +1,5 @@
 [![codecov](https://codecov.io/gh/arturogonzalezm/RealTimeBinanceMonitor/graph/badge.svg?token=I4cOxsac0y)](https://codecov.io/gh/arturogonzalezm/RealTimeBinanceMonitor)
+![Go Test and Coverage](https://github.com/arturogonzalezm/myrepo/actions/workflows/workflow.yml/badge.svg)
 
 # RealTimeBinanceMonitor
 

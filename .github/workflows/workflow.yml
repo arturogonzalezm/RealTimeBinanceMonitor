@@ -7,12 +7,10 @@ on:
     branches: [ main ]
 
 jobs:
-
   test:
     name: Test and coverage
     runs-on: ubuntu-latest
     steps:
-
       - name: Check out code
         uses: actions/checkout@v4
 
@@ -27,6 +25,13 @@ jobs:
           go mod verify
           go mod download
           go mod tidy
+
+      - name: Install golangci-lint
+        run: |
+          curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.54.2
+
+      - name: Run golangci-lint
+        run: golangci-lint run
 
       - name: Run tests with coverage
         run: go test -v -coverprofile=coverage.txt -covermode=atomic ./...
