@@ -19,7 +19,7 @@ func main() {
 	symbol := "btcusdt"
 	uri := fmt.Sprintf("wss://stream.binance.com:9443/ws/%s@ticker", symbol)
 
-	client := websocket.NewWebSocketClient()
+	client := websocket.NewClient()
 	if err := client.Connect(uri); err != nil {
 		log.Fatal("WebSocket connection error:", err)
 	}
@@ -40,7 +40,7 @@ func main() {
 	}
 
 	// Create BufferedCSVWriter with a 5-second flush interval
-	csvWriter, err := processor.NewBufferedCSVWriter(filepath.Join(dataDir, "crypto_data.csv"), 100, 5*time.Second)
+	csvWriter, err := processor.NewBufferedCSVWriter(filepath.Join(dataDir, fmt.Sprintf("%s_data.csv", symbol)), 100, 5*time.Second)
 	if err != nil {
 		log.Fatal("Error creating CSV writer:", err)
 	}

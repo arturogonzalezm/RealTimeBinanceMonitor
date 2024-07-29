@@ -9,20 +9,20 @@ import (
 
 // TickerData represents the structure of the incoming WebSocket message
 type TickerData struct {
-	EventType    string            `json:"e"`
-	EventTime    flexint.FlexInt64 `json:"E"`
-	Symbol       string            `json:"s"`
-	LastPrice    string            `json:"c"`
-	PriceChange  string            `json:"p"`
-	HighPrice    string            `json:"h"`
-	LowPrice     string            `json:"l"`
-	Volume       string            `json:"v"`
-	QuoteVolume  string            `json:"q"`
-	OpenTime     flexint.FlexInt64 `json:"O"`
-	CloseTime    flexint.FlexInt64 `json:"C"`
-	FirstTradeID int               `json:"F"`
-	LastTradeID  int               `json:"L"`
-	TradeCount   int               `json:"n"`
+	EventType    string        `json:"e"`
+	EventTime    flexint.Int64 `json:"E"`
+	Symbol       string        `json:"s"`
+	LastPrice    string        `json:"c"`
+	PriceChange  string        `json:"p"`
+	HighPrice    string        `json:"h"`
+	LowPrice     string        `json:"l"`
+	Volume       string        `json:"v"`
+	QuoteVolume  string        `json:"q"`
+	OpenTime     flexint.Int64 `json:"O"`
+	CloseTime    flexint.Int64 `json:"C"`
+	FirstTradeID int           `json:"F"`
+	LastTradeID  int           `json:"L"`
+	TradeCount   int           `json:"n"`
 }
 
 // FormattedData represents the structure of the processed data
