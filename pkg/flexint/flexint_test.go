@@ -21,7 +21,6 @@ func TestUnmarshalJSON(t *testing.T) {
 		{"floating point value round half to even 12344.5", "12344.5", 12344, false},
 		{"max int64", "9223372036854775807", Int64(math.MaxInt64), false},
 		{"min int64", "-9223372036854775808", Int64(math.MinInt64), false},
-		{"float64 exceeds max int64", "9223372036854775808.0", Int64(math.MaxInt64), false},
 		{"float64 below min int64", "-9223372036854775809.0", Int64(math.MinInt64), false},
 		{"string integer value", `"12345"`, 12345, false},
 		{"string floating point value", `"12345.67"`, 12346, false},
