@@ -25,6 +25,7 @@ func (i *Int64) UnmarshalJSON(data []byte) error {
 	// Try to unmarshal as a float64 and then convert
 	var floatVal float64
 	if err := json.Unmarshal(data, &floatVal); err == nil {
+		// Clamp the float value to int64 bounds
 		if floatVal > float64(math.MaxInt64) {
 			*i = Int64(math.MaxInt64)
 		} else if floatVal < float64(math.MinInt64) {
@@ -42,6 +43,7 @@ func (i *Int64) UnmarshalJSON(data []byte) error {
 			*i = Int64(intVal)
 			return nil
 		} else if floatVal, err := strconv.ParseFloat(strVal, 64); err == nil {
+			// Clamp the float value to int64 bounds
 			if floatVal > float64(math.MaxInt64) {
 				*i = Int64(math.MaxInt64)
 			} else if floatVal < float64(math.MinInt64) {
