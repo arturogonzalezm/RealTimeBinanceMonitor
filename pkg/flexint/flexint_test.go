@@ -42,7 +42,11 @@ func TestInt64_UnmarshalJSON(t *testing.T) {
 				assert.Error(t, err)
 			} else {
 				require.NoError(t, err)
-				assert.Equal(t, tt.expected, fi)
+				assert.Equal(t, tt.expected, fi, "For input: %s", tt.input)
+			}
+
+			if tt.expected != fi {
+				t.Logf("Input: %s, Expected: %d, Got: %d", tt.input, tt.expected, fi)
 			}
 		})
 	}
