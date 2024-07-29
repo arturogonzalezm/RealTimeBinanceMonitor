@@ -25,7 +25,7 @@ func (i *Int64) UnmarshalJSON(data []byte) error {
 	// Try to unmarshal as a float64 and then convert
 	var floatVal float64
 	if err := json.Unmarshal(data, &floatVal); err == nil {
-		roundedVal := math.RoundToEven(floatVal)
+		roundedVal := roundHalfToEven(floatVal)
 		if roundedVal > float64(math.MaxInt64) {
 			*i = Int64(math.MaxInt64)
 		} else if roundedVal < float64(math.MinInt64) {
@@ -43,7 +43,7 @@ func (i *Int64) UnmarshalJSON(data []byte) error {
 			*i = Int64(intVal)
 			return nil
 		} else if floatVal, err := strconv.ParseFloat(strVal, 64); err == nil {
-			roundedVal := math.RoundToEven(floatVal)
+			roundedVal := roundHalfToEven(floatVal)
 			if roundedVal > float64(math.MaxInt64) {
 				*i = Int64(math.MaxInt64)
 			} else if roundedVal < float64(math.MinInt64) {
@@ -56,4 +56,15 @@ func (i *Int64) UnmarshalJSON(data []byte) error {
 	}
 
 	return errors.New("invalid value for Int64")
+}
+
+func roundHalfToEven(val float64) float64 {
+	if val == float64(int64(val)) {
+		return val
+	}
+	floor := math.Floor(val)
+	if val-floor > 0.5 || (val-floor == 0.5 && int64(floor)%2 != 0) {
+		return floor + 1
+	}
+	return floor
 }
