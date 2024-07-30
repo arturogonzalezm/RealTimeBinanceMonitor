@@ -15,4 +15,4 @@ require (
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 
-replace github.com/arturogonzalezm/RealTimeBinanceMonitor v1.1.0 => github.com/arturogonzalezm/RealTimeBinanceMonitor v1.1.1
+replace github.com/arturogonzalezm/RealTimeBinanceMonitor v1.1.1 => github.com/arturogonzalezm/RealTimeBinanceMonitor v1.1.2
