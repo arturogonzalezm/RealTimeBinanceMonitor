@@ -1,16 +1,17 @@
 package main
 
 import (
+	"database/sql"
 	"fmt"
 	"log"
 	"os"
 	"os/signal"
-	"path/filepath"
 	"syscall"
 	"time"
 
 	"github.com/arturogonzalezm/RealTimeBinanceMonitor/internal/processor"
 	"github.com/arturogonzalezm/RealTimeBinanceMonitor/internal/websocket"
+	_ "github.com/lib/pq"
 )
 
 func main() {
@@ -29,28 +30,48 @@ func main() {
 		}
 	}()
 
-	// Create data directory
-	currentDir, err := os.Getwd()
-	if err != nil {
-		log.Fatal("Error getting current directory:", err)
-	}
-	dataDir := filepath.Join(currentDir, "data")
-	if err := os.MkdirAll(dataDir, os.ModePerm); err != nil {
-		log.Fatal("Error creating directory:", err)
-	}
+	// Get database connection details from environment variables
+	dbHost := os.Getenv("DB_HOST")
+	dbUser := os.Getenv("DB_USER")
+	dbPassword := os.Getenv("DB_PASSWORD")
+	dbName := os.Getenv("DB_NAME")
 
-	// Create BufferedCSVWriter with a 5-second flush interval
-	csvWriter, err := processor.NewBufferedCSVWriter(filepath.Join(dataDir, fmt.Sprintf("%s_data.csv", symbol)), 100, 5*time.Second)
-	if err != nil {
-		log.Fatal("Error creating CSV writer:", err)
+	fmt.Printf("DB_HOST: %s, DB_USER: %s, DB_PASSWORD: %s, DB_NAME: %s\n", dbHost, dbUser, dbPassword, dbName)
+
+	// Database connection setup
+	connStr := fmt.Sprintf("postgres://%s:%s@%s/%s?sslmode=disable", dbUser, dbPassword, dbHost, dbName)
+	var db *sql.DB
+	var err error
+
+	// Retry connecting to the database until successful
+	for {
+		db, err = sql.Open("postgres", connStr)
+		if err != nil {
+			log.Printf("Error connecting to the database: %v", err)
+		} else if err = db.Ping(); err == nil {
+			break
+		}
+		log.Println("Waiting for the database to be ready...")
+		time.Sleep(2 * time.Second)
 	}
 	defer func() {
-		if err := csvWriter.Close(); err != nil {
-			log.Printf("Error closing CSV writer: %v", err)
+		if err := db.Close(); err != nil {
+			log.Printf("Error closing the database: %v", err)
 		}
 	}()
 
-	client.AddProcessor(csvWriter)
+	// Create PGWriter
+	pgWriter, err := processor.NewPGWriter(db)
+	if err != nil {
+		log.Fatal("Error creating PostgreSQL writer:", err)
+	}
+	defer func() {
+		if err := pgWriter.Close(); err != nil {
+			log.Printf("Error closing PostgreSQL writer: %v", err)
+		}
+	}()
+
+	client.AddProcessor(pgWriter)
 
 	stop := make(chan struct{})
 	go client.Listen(stop)
@@ -73,8 +94,8 @@ func main() {
 			return
 		case <-ticker.C:
 			// Print a summary every 5 seconds
-			log.Printf("Last 5 seconds: Processed %d messages", csvWriter.GetProcessedCount())
-			log.Printf("Current buffer size: %d", csvWriter.GetBufferSize())
+			log.Printf("Last 5 seconds: Processed %d messages", pgWriter.GetProcessedCount())
+			log.Printf("Current buffer size: %d", pgWriter.GetBufferSize())
 		}
 	}
 }
