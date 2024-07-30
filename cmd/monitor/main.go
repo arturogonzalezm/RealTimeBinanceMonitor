@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"os/signal"
+	"sync"
 	"syscall"
 	"time"
 
@@ -17,18 +18,7 @@ import (
 func main() {
 	log.Println("Starting RealTimeCryptoMonitor...")
 
-	symbol := "btcusdt"
-	uri := fmt.Sprintf("wss://stream.binance.com:9443/ws/%s@ticker", symbol)
-
-	client := websocket.NewClient()
-	if err := client.Connect(uri); err != nil {
-		log.Fatal("WebSocket connection error:", err)
-	}
-	defer func() {
-		if err := client.Close(); err != nil {
-			log.Printf("Error closing WebSocket client: %v", err)
-		}
-	}()
+	symbols := []string{"btcusdt", "ethusdt", "ltcusdt"} // Add more symbols as needed
 
 	// Get database connection details from environment variables
 	dbHost := os.Getenv("DB_HOST")
@@ -60,27 +50,65 @@ func main() {
 		}
 	}()
 
+	// Channel to handle graceful shutdown
+	stop := make(chan struct{})
+	// Channel to listen for OS signals
+	sigs := make(chan os.Signal, 1)
+	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
+
+	// WaitGroup to manage goroutines
+	var wg sync.WaitGroup
+
+	for _, symbol := range symbols {
+		wg.Add(1)
+		go func(symbol string) {
+			defer wg.Done()
+			monitorSymbol(symbol, db, stop)
+		}(symbol)
+	}
+
+	// Wait for an interrupt signal
+	go func() {
+		sig := <-sigs
+		log.Printf("Received signal: %s. Shutting down gracefully...", sig)
+		close(stop)
+	}()
+
+	// Wait for all goroutines to finish
+	wg.Wait()
+	log.Println("All symbol monitoring stopped. Exiting program.")
+}
+
+func monitorSymbol(symbol string, db *sql.DB, stop chan struct{}) {
+	log.Printf("Starting monitoring for symbol: %s", symbol)
+	uri := fmt.Sprintf("wss://stream.binance.com:9443/ws/%s@ticker", symbol)
+
+	client := websocket.NewClient()
+	if err := client.Connect(uri); err != nil {
+		log.Fatalf("WebSocket connection error for symbol %s: %v", symbol, err)
+	}
+	defer func() {
+		if err := client.Close(); err != nil {
+			log.Printf("Error closing WebSocket client for symbol %s: %v", symbol, err)
+		}
+	}()
+
 	// Create PGWriter
 	pgWriter, err := processor.NewPGWriter(db)
 	if err != nil {
-		log.Fatal("Error creating PostgreSQL writer:", err)
+		log.Fatalf("Error creating PostgreSQL writer for symbol %s: %v", symbol, err)
 	}
 	defer func() {
 		if err := pgWriter.Close(); err != nil {
-			log.Printf("Error closing PostgreSQL writer: %v", err)
+			log.Printf("Error closing PostgreSQL writer for symbol %s: %v", symbol, err)
 		}
 	}()
 
 	client.AddProcessor(pgWriter)
 
-	stop := make(chan struct{})
 	go client.Listen(stop)
 
 	log.Printf("WebSocket connection opened for %s", symbol)
-
-	// Set up signal catching
-	sigs := make(chan os.Signal, 1)
-	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
 
 	// Periodic summary
 	ticker := time.NewTicker(5 * time.Second)
@@ -88,14 +116,13 @@ func main() {
 
 	for {
 		select {
-		case <-sigs:
-			close(stop)
-			log.Println("Shutting down gracefully...")
+		case <-stop:
+			log.Printf("Stopping monitoring for symbol: %s", symbol)
 			return
 		case <-ticker.C:
 			// Print a summary every 5 seconds
-			log.Printf("Last 5 seconds: Processed %d messages", pgWriter.GetProcessedCount())
-			log.Printf("Current buffer size: %d", pgWriter.GetBufferSize())
+			log.Printf("Symbol: %s - Last 5 seconds: Processed %d messages", symbol, pgWriter.GetProcessedCount())
+			log.Printf("Symbol: %s - Current buffer size: %d", symbol, pgWriter.GetBufferSize())
 		}
 	}
 }
