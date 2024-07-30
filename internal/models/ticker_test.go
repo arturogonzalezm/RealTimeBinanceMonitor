@@ -1,10 +1,10 @@
 package models
 
 import (
+	"github.com/arturogonzalezm/RealTimeBinanceMonitor/internal/utils"
 	"testing"
 	"time"
 
-	"github.com/arturogonzalezm/RealTimeBinanceMonitor/pkg/flexint"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -13,7 +13,7 @@ func TestFormatTickerData(t *testing.T) {
 	// Create a mock TickerData
 	mockTickerData := TickerData{
 		EventType:    "24hrTicker",
-		EventTime:    flexint.Int64(now), // Use current time
+		EventTime:    utils.Int64(now), // Use current time
 		Symbol:       "BTCUSDT",
 		LastPrice:    "35000.00",
 		PriceChange:  "1000.00",
@@ -21,8 +21,8 @@ func TestFormatTickerData(t *testing.T) {
 		LowPrice:     "34000.00",
 		Volume:       "1000.5",
 		QuoteVolume:  "35000000.00",
-		OpenTime:     flexint.Int64(now - 86400000), // 24 hours ago
-		CloseTime:    flexint.Int64(now),
+		OpenTime:     utils.Int64(now - 86400000), // 24 hours ago
+		CloseTime:    utils.Int64(now),
 		FirstTradeID: 100,
 		LastTradeID:  200,
 		TradeCount:   100,

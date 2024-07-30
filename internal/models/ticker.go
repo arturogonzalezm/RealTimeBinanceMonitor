@@ -1,28 +1,27 @@
 package models
 
 import (
+	"github.com/arturogonzalezm/RealTimeBinanceMonitor/internal/utils"
 	"strconv"
 	"time"
-
-	"github.com/arturogonzalezm/RealTimeBinanceMonitor/pkg/flexint"
 )
 
 // TickerData represents the structure of the incoming WebSocket message
 type TickerData struct {
-	EventType    string        `json:"e"`
-	EventTime    flexint.Int64 `json:"E"`
-	Symbol       string        `json:"s"`
-	LastPrice    string        `json:"c"`
-	PriceChange  string        `json:"p"`
-	HighPrice    string        `json:"h"`
-	LowPrice     string        `json:"l"`
-	Volume       string        `json:"v"`
-	QuoteVolume  string        `json:"q"`
-	OpenTime     flexint.Int64 `json:"O"`
-	CloseTime    flexint.Int64 `json:"C"`
-	FirstTradeID int           `json:"F"`
-	LastTradeID  int           `json:"L"`
-	TradeCount   int           `json:"n"`
+	EventType    string      `json:"e"`
+	EventTime    utils.Int64 `json:"E"`
+	Symbol       string      `json:"s"`
+	LastPrice    string      `json:"c"`
+	PriceChange  string      `json:"p"`
+	HighPrice    string      `json:"h"`
+	LowPrice     string      `json:"l"`
+	Volume       string      `json:"v"`
+	QuoteVolume  string      `json:"q"`
+	OpenTime     utils.Int64 `json:"O"`
+	CloseTime    utils.Int64 `json:"C"`
+	FirstTradeID int         `json:"F"`
+	LastTradeID  int         `json:"L"`
+	TradeCount   int         `json:"n"`
 }
 
 // FormattedData represents the structure of the processed data

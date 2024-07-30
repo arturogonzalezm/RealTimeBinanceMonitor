@@ -1,4 +1,4 @@
-package flexint
+package utils
 
 import (
 	"encoding/json"
