@@ -44,10 +44,10 @@ db-shell:
 test:
 	go test ./...
 
-#run:
-#	go run cmd/monitor/main.go
+run:
+	go run cmd/monitor/main.go
 
 # Run the Go application
-run:
-	@echo "Running the Go application..."
-	DB_HOST=localhost DB_USER=postgres DB_PASSWORD=postgres DB_NAME=postgres go run cmd/monitor/main.go
+#run:
+#	@echo "Running the Go application..."
+#	DB_HOST=localhost DB_USER=postgres DB_PASSWORD=postgres DB_NAME=postgres go run cmd/monitor/main.go

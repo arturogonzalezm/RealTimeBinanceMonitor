@@ -10,26 +10,36 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/arturogonzalezm/RealTimeBinanceMonitor/internal/processor"
-	"github.com/arturogonzalezm/RealTimeBinanceMonitor/internal/websocket"
 	_ "github.com/lib/pq"
+	"github.com/spf13/viper"
+
+	"github.com/arturogonzalezm/RealTimeBinanceMonitor/internal/monitor"
 )
+
+type Config struct {
+	DB struct {
+		Host     string
+		User     string
+		Password string
+		Name     string
+	}
+	Symbols []string
+}
 
 func main() {
 	log.Println("Starting RealTimeCryptoMonitor...")
 
-	symbols := []string{"btcusdt", "ethusdt", "ltcusdt"} // Add more symbols as needed
+	// Load configuration
+	var config Config
+	if err := loadConfig(&config); err != nil {
+		log.Fatalf("Error loading configuration: %v", err)
+	}
 
-	// Get database connection details from environment variables
-	dbHost := os.Getenv("DB_HOST")
-	dbUser := os.Getenv("DB_USER")
-	dbPassword := os.Getenv("DB_PASSWORD")
-	dbName := os.Getenv("DB_NAME")
-
-	fmt.Printf("DB_HOST: %s, DB_USER: %s, DB_PASSWORD: %s, DB_NAME: %s\n", dbHost, dbUser, dbPassword, dbName)
+	// Print loaded configuration
+	fmt.Printf("DB_HOST: %s, DB_USER: %s, DB_PASSWORD: %s, DB_NAME: %s\n", config.DB.Host, config.DB.User, config.DB.Password, config.DB.Name)
 
 	// Database connection setup
-	connStr := fmt.Sprintf("postgres://%s:%s@%s/%s?sslmode=disable", dbUser, dbPassword, dbHost, dbName)
+	connStr := fmt.Sprintf("postgres://%s:%s@%s/%s?sslmode=disable", config.DB.User, config.DB.Password, config.DB.Host, config.DB.Name)
 	var db *sql.DB
 	var err error
 
@@ -59,11 +69,11 @@ func main() {
 	// WaitGroup to manage goroutines
 	var wg sync.WaitGroup
 
-	for _, symbol := range symbols {
+	for _, symbol := range config.Symbols {
 		wg.Add(1)
 		go func(symbol string) {
 			defer wg.Done()
-			monitorSymbol(symbol, db, stop)
+			monitor.MonitorSymbol(symbol, db, stop)
 		}(symbol)
 	}
 
@@ -79,50 +89,14 @@ func main() {
 	log.Println("All symbol monitoring stopped. Exiting program.")
 }
 
-func monitorSymbol(symbol string, db *sql.DB, stop chan struct{}) {
-	log.Printf("Starting monitoring for symbol: %s", symbol)
-	uri := fmt.Sprintf("wss://stream.binance.com:9443/ws/%s@ticker", symbol)
+func loadConfig(config *Config) error {
+	viper.SetConfigName("config")
+	viper.SetConfigType("yaml")
+	viper.AddConfigPath("configs")
 
-	client := websocket.NewClient()
-	if err := client.Connect(uri); err != nil {
-		log.Fatalf("WebSocket connection error for symbol %s: %v", symbol, err)
+	if err := viper.ReadInConfig(); err != nil {
+		return err
 	}
-	defer func() {
-		if err := client.Close(); err != nil {
-			log.Printf("Error closing WebSocket client for symbol %s: %v", symbol, err)
-		}
-	}()
 
-	// Create PGWriter
-	pgWriter, err := processor.NewPGWriter(db)
-	if err != nil {
-		log.Fatalf("Error creating PostgreSQL writer for symbol %s: %v", symbol, err)
-	}
-	defer func() {
-		if err := pgWriter.Close(); err != nil {
-			log.Printf("Error closing PostgreSQL writer for symbol %s: %v", symbol, err)
-		}
-	}()
-
-	client.AddProcessor(pgWriter)
-
-	go client.Listen(stop)
-
-	log.Printf("WebSocket connection opened for %s", symbol)
-
-	// Periodic summary
-	ticker := time.NewTicker(5 * time.Second)
-	defer ticker.Stop()
-
-	for {
-		select {
-		case <-stop:
-			log.Printf("Stopping monitoring for symbol: %s", symbol)
-			return
-		case <-ticker.C:
-			// Print a summary every 5 seconds
-			log.Printf("Symbol: %s - Last 5 seconds: Processed %d messages", symbol, pgWriter.GetProcessedCount())
-			log.Printf("Symbol: %s - Current buffer size: %d", symbol, pgWriter.GetBufferSize())
-		}
-	}
+	return viper.Unmarshal(&config)
 }
